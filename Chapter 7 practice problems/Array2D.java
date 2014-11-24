@@ -35,12 +35,24 @@ public class Array2D
     {
         String str = "";
         
-        for (int col = 0; col < table[row].length; col++)
+        for (int val : table[row])
+        {
+            str += val + "\t";
+        }
+        
+        return str;
+    }
+    
+    public String extractColumn( int col )
+    {
+        String str = "";
+        
+        for (int row = 0; row < table.length; row++)
         {
             str += table[row][col] + "\t";
         }
         
-        return str;
+        return str;    
     }
     
     public static void main(String[] args)
