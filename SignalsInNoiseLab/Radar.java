@@ -1,4 +1,4 @@
-
+import java.util.Scanner;
 /**
  * The model for radar scan and accumulator
  * 
@@ -10,6 +10,7 @@ public class Radar
     
     // stores whether each cell triggered detection for the current scan of the radar
     private boolean[][] currentScan;
+    private boolean[][] previousScan;
     
     // value of each cell is incremented for each scan in which that cell triggers detection 
     private int[][] accumulator;
@@ -23,6 +24,10 @@ public class Radar
     
     // number of scans of the radar since construction
     private int numScans;
+    
+    private int dx;
+    private int dy;
+   
 
     /**
      * Constructor for objects of class Radar
@@ -34,8 +39,8 @@ public class Radar
     {
         // initialize instance variables
         currentScan = new boolean[rows][cols]; // elements will be set to false
-        accumulator = new int[rows][cols]; // elements will be set to 0
-        
+        accumulator = new int[11][11]; // elements will be set to 0
+        previousScan = new boolean[rows][cols];
         // randomly set the location of the monster (can be explicity set through the
         //  setMonsterLocation method
         monsterLocationRow = (int)(Math.random() * rows);
@@ -43,6 +48,12 @@ public class Radar
         
         noiseFraction = 0.05;
         numScans= 0;
+        Scanner s = new Scanner(System.in);
+        System.out.print("Enter a DX: ");
+        dx=s.nextInt();
+        System.out.print("Enter a DY: ");
+        dy=s.nextInt();
+        
     }
     
     /**
@@ -51,6 +62,32 @@ public class Radar
      */
     public void scan()
     {
+        for (int i = 0; i < currentScan.length; i++)
+        {
+            for (int j = 0; j < currentScan.length; j++)
+            {
+                previousScan[i][j] = currentScan[i][j];
+            }
+        }
+        monsterLocationRow += dy;
+        monsterLocationCol += dx;
+        
+        if (monsterLocationCol<0)
+        {
+            monsterLocationCol=getNumCols()-1;
+        }
+        if (monsterLocationCol>getNumCols()-1)
+        {
+            monsterLocationCol=0;
+        }
+        if (monsterLocationRow<0)
+        {
+            monsterLocationRow=getNumRows()-1;
+        }
+        if (monsterLocationRow>getNumRows()-1)
+        {
+            monsterLocationRow=0;
+        }
         // zero the current scan grid
         for(int row = 0; row < currentScan.length; row++)
         {
@@ -67,21 +104,53 @@ public class Radar
         injectNoise();
         
         // udpate the accumulator
-        for(int row = 0; row < currentScan.length; row++)
+        for(int row = 0; row < previousScan.length; row++)
         {
-            for(int col = 0; col < currentScan[0].length; col++)
+            for(int col = 0; col < previousScan[0].length; col++)
             {
-                if(currentScan[row][col] == true)
+                if (previousScan[row][col] == true)
                 {
-                   accumulator[row][col]++;
+                    for (int row1 = 0; row1 < currentScan.length; row1++)
+                    {
+                        for (int col1 = 0; col1 < currentScan.length; col1++)
+                        {
+                            if (currentScan[row1][col1]==true)
+                            {
+                                if (Math.abs(row1-row)<=5 && (Math.abs(col1-col)<=5))
+                                {
+                                    accumulator[row1-row+5][col1-col+5]++;
+                                }
+                            }
+                        }
+                    }
                 }
             }
         }
+     
         
         // keep track of the total number of scans
         numScans++;
     }
 
+    public int[] findMax()
+    {
+        int max=0; 
+        int[] list = new int[2];
+        for (int i=0; i<accumulator.length; i++)
+        {
+            for (int j=0; j<accumulator[0].length; j++)
+            {
+                if (accumulator[i][j]>max)
+                {
+                    max=accumulator[i][j];
+                    list[0]=i-5;
+                    list[1]=j-5;
+                }
+            }
+        }
+        return list;
+    }
+    
     /**
      * Sets the location of the monster
      * 
